@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>Anas | Profile</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <style>
+        body { font-family: 'Cairo', sans-serif; background: #0f172a; color: white; text-align: center; padding: 20px; }
+        .container { max-width: 500px; margin: auto; }
+        .card { background: #1e293b; padding: 15px; margin: 10px 0; border-radius: 12px; border: 1px solid #334155; text-align: right; }
+        .link-btn { display: block; background: #38bdf8; color: #000; text-decoration: none; padding: 12px; margin: 10px 0; border-radius: 8px; font-weight: bold; }
+        #adminPanel { display: none; background: #000; padding: 20px; border-radius: 15px; border: 2px solid #38bdf8; margin-top: 20px; }
+        input, textarea { width: 90%; padding: 10px; margin: 5px 0; border-radius: 5px; border: none; font-family: 'Cairo'; }
+        button { background: #38bdf8; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-weight: bold; font-family: 'Cairo'; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1 onclick="openAdmin()" style="cursor: pointer; user-select: none;">Anas</h1>
+        <div id="linksContainer"></div>
+        <hr>
+        <h3>المدونات والشروحات</h3>
+        <div id="blogsContainer"></div>
+
+        <div id="adminPanel">
+            <h3>لوحة التحكم 🛠️</h3>
+            <input type="text" id="title" placeholder="العنوان">
+            <input type="text" id="url" placeholder="الرابط">
+            <textarea id="desc" placeholder="الوصف"></textarea>
+            <br>
+            <button onclick="sendData('links')">إضافة رابط</button>
+            <button onclick="sendData('blogs')" style="background: #22c55e;">إضافة مدونة</button>
+        </div>
+    </div>
+
+    <script>
+        // الرابط الجديد بعد تصحيح الـ Region (أوروبا)
+        const config = {
+            databaseURL: "https://anasportfolio-c3316-default-rtdb.europe-west1.firebasedatabase.app"
+        };
+        firebase.initializeApp(config);
+        const database = firebase.database();
+
+        // عرض البيانات
+        database.ref('/').on('value', (snapshot) => {
+            const data = snapshot.val();
+            let lHtml = '';
+            if(data?.links) {
+                Object.values(data.links).reverse().forEach(l => {
+                    lHtml += `<a href="${l.url}" target="_blank" class="link-btn">${l.title}</a>`;
+                });
+            }
+            document.getElementById('linksContainer').innerHTML = lHtml || "لا توجد روابط";
+
+            let bHtml = '';
+            if(data?.blogs) {
+                Object.values(data.blogs).reverse().forEach(b => {
+                    bHtml += `<div class="card"><h4>${b.title}</h4><p>${b.desc}</p><a href="${b.url}" target="_blank" style="color:#38bdf8">اقرأ المزيد ←</a></div>`;
+                });
+            }
+            document.getElementById('blogsContainer').innerHTML = bHtml || "لا توجد مدونات";
+        });
+
+        // إرسال البيانات
+        function sendData(path) {
+            const t = document.getElementById('title').value;
+            const u = document.getElementById('url').value;
+            const d = document.getElementById('desc').value;
+
+            if(!t || !u) return alert("املا الخانات!");
+
+            database.ref(path).push({
+                title: t,
+                url: u,
+                desc: d || "",
+                time: Date.now()
+            })
+            .then(() => {
+                alert("تم الحفظ بنجاح يا أنس! 🚀");
+                document.getElementById('title').value = '';
+                document.getElementById('url').value = '';
+                document.getElementById('desc').value = '';
+            })
+            .catch(err => alert("خطأ: " + err.message));
+        }
+
+        let count = 0;
+        function openAdmin() {
+            count++;
+            if(count === 5) {
+                if(prompt("كلمة السر؟") === "123") {
+                    document.getElementById('adminPanel').style.display = 'block';
+                }
+                count = 0;
+            }
+        }
+    </script>
+</body>
+</html>
