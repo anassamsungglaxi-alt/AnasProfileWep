@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Anas | Portfolio & Blog</title>
+    <title>Anas | Portfolio & Admin</title>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
     
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
@@ -14,7 +14,6 @@
             --main-color: #38bdf8;
             --bg-dark: #0f172a;
             --card-bg: #1e293b;
-            --text-gray: #94a3b8;
         }
 
         body {
@@ -23,7 +22,6 @@
             color: white;
             margin: 0;
             padding: 20px;
-            line-height: 1.6;
         }
 
         .container {
@@ -35,14 +33,8 @@
         h1 {
             color: var(--main-color);
             cursor: pointer;
-            font-size: 2.5rem;
-            margin-bottom: 10px;
             user-select: none;
-        }
-
-        .subtitle {
-            color: var(--text-gray);
-            margin-bottom: 30px;
+            font-size: 2.5rem;
         }
 
         .card {
@@ -52,7 +44,6 @@
             border-radius: 15px;
             border: 1px solid #334155;
             text-align: right;
-            transition: 0.3s;
         }
 
         .link-btn {
@@ -70,10 +61,9 @@
         .link-btn:hover {
             background: var(--main-color);
             color: #000;
-            transform: translateY(-3px);
         }
 
-        /* لوحة التحكم السرية */
+        /* لوحة التحكم */
         #adminPanel {
             display: none;
             background: #000;
@@ -81,11 +71,10 @@
             border: 2px solid var(--main-color);
             margin: 30px 0;
             border-radius: 20px;
-            box-shadow: 0 0 20px rgba(56, 189, 248, 0.2);
         }
 
         input, textarea {
-            width: 95%;
+            width: 90%;
             padding: 12px;
             margin: 10px 0;
             border-radius: 8px;
@@ -103,62 +92,54 @@
             border-radius: 8px;
             cursor: pointer;
             font-weight: bold;
-            font-family: 'Cairo';
             margin: 5px;
         }
 
         button:active { transform: scale(0.95); }
-
-        .tag {
-            background: var(--main-color);
-            color: black;
-            padding: 2px 8px;
-            border-radius: 5px;
-            font-size: 12px;
-            font-weight: bold;
-        }
     </style>
 </head>
 <body>
 
     <div class="container">
         <h1 onclick="checkAdmin()">Anas</h1>
-        <p class="subtitle">مطور برمجيات وألعاب | Software Developer</p>
+        <p style="color: #94a3b8;">مرحباً بك في ملفي الشخصي ومدونتي</p>
 
         <div id="linksContainer">
             <p>جاري تحميل الروابط...</p>
         </div>
 
-        <h3 style="margin-top: 40px; border-bottom: 2px solid var(--card-bg); padding-bottom: 10px;">آخر الشروحات والمدونات ✍️</h3>
+        <h3 style="margin-top: 40px; border-bottom: 2px solid var(--card-bg); padding-bottom: 10px;">الشروحات والمدونات ✍️</h3>
         <div id="blogsContainer">
             <p>جاري تحميل المدونات...</p>
         </div>
 
         <div id="adminPanel">
-            <h3 style="color: var(--main-color);">لوحة التحكم السرية 🛠️</h3>
-            <input type="text" id="title" placeholder="اسم المنصة أو عنوان الشرح">
+            <h3 style="color: var(--main-color);">لوحة التحكم 🛠️</h3>
+            <input type="text" id="title" placeholder="العنوان">
             <input type="text" id="url" placeholder="الرابط (URL)">
             <textarea id="desc" rows="3" placeholder="الوصف (للمدونات فقط)"></textarea>
             <br>
             <button onclick="saveData('links')">إضافة كـ رابط</button>
             <button onclick="saveData('blogs')" style="background: #22c55e;">نشر كـ مدونة</button>
-            <button onclick="document.getElementById('adminPanel').style.display='none'" style="background: #64748b;">إغلاق</button>
         </div>
     </div>
 
     <script>
-        // 1. إعدادات فايربيز الخاصة بك
+        // إعدادات فايربيز لمشروعك AnasPortfolio
         const firebaseConfig = {
-            databaseURL: "https://anasportfolio-c3316-default-rtdb.firebaseio.com/"
+            apiKey: "AIzaSyC-NoKeyRequiredForPublicRTDB",
+            authDomain: "anasportfolio-c3316.firebaseapp.com",
+            databaseURL: "https://anasportfolio-c3316-default-rtdb.firebaseio.com/",
+            projectId: "anasportfolio-c3316",
         };
 
-        // 2. تشغيل فايربيز
+        // بدء الاتصال
         if (!firebase.apps.length) {
             firebase.initializeApp(firebaseConfig);
         }
         const db = firebase.database();
 
-        // 3. دالة جلب البيانات (تشتغل تلقائياً)
+        // جلب وعرض البيانات
         function loadData() {
             db.ref('/').on('value', (snapshot) => {
                 const data = snapshot.val();
@@ -167,45 +148,40 @@
                 let linksHtml = '';
                 if (data && data.links) {
                     Object.keys(data.links).reverse().forEach(key => {
-                        const link = data.links[key];
-                        linksHtml += `<a href="${link.url}" target="_blank" class="link-btn">${link.title}</a>`;
+                        const l = data.links[key];
+                        linksHtml += `<a href="${l.url}" target="_blank" class="link-btn">${l.title}</a>`;
                     });
-                    document.getElementById('linksContainer').innerHTML = linksHtml;
-                } else {
-                    document.getElementById('linksContainer').innerHTML = "<p style='color:#64748b'>لا توجد روابط مضافة</p>";
                 }
+                document.getElementById('linksContainer').innerHTML = linksHtml || "<p>لا توجد روابط مضافة</p>";
 
                 // تحديث المدونات
                 let blogsHtml = '';
                 if (data && data.blogs) {
                     Object.keys(data.blogs).reverse().forEach(key => {
-                        const blog = data.blogs[key];
+                        const b = data.blogs[key];
                         blogsHtml += `
                             <div class="card">
-                                <span class="tag">شرح جديد</span>
-                                <h4>${blog.title}</h4>
-                                <p style="color:var(--text-gray); font-size:14px;">${blog.desc}</p>
-                                <a href="${blog.url}" target="_blank" style="color:var(--main-color); text-decoration:none; font-weight:bold;">اقرأ المزيد ←</a>
+                                <h4>${b.title}</h4>
+                                <p style="color:#94a3b8; font-size:14px;">${b.desc}</p>
+                                <a href="${b.url}" target="_blank" style="color:var(--main-color); text-decoration:none;">اقرأ المزيد ←</a>
                             </div>`;
                     });
-                    document.getElementById('blogsContainer').innerHTML = blogsHtml;
-                } else {
-                    document.getElementById('blogsContainer').innerHTML = "<p style='color:#64748b'>لا توجد شروحات مضافة</p>";
                 }
+                document.getElementById('blogsContainer').innerHTML = blogsHtml || "<p>لا توجد مدونات مضافة</p>";
             }, (error) => {
-                console.error("فشل في قراءة البيانات:", error);
-                alert("مشكلة في الاتصال بفايربيز، تأكد من الـ Rules!");
+                console.error(error);
+                alert("خطأ في الاتصال بقاعدة البيانات!");
             });
         }
 
-        // 4. دالة الحفظ
+        // دالة الحفظ مع تنبيهات مؤكدة
         function saveData(type) {
             const title = document.getElementById('title').value;
             const url = document.getElementById('url').value;
             const desc = document.getElementById('desc').value;
 
             if (!title || !url) {
-                alert("يا أنس، لازم تملا الخانات الأساسية!");
+                alert("أدخل العنوان والرابط يا أنس!");
                 return;
             }
 
@@ -213,36 +189,36 @@
                 title: title,
                 url: url,
                 desc: desc || "",
-                date: new Date().toISOString()
-            }).then(() => {
+                time: Date.now()
+            })
+            .then(() => {
                 alert("تم الحفظ بنجاح! 🚀");
                 document.getElementById('title').value = '';
                 document.getElementById('url').value = '';
                 document.getElementById('desc').value = '';
-            }).catch((err) => {
-                alert("خطأ في الحفظ: " + err.message);
+            })
+            .catch((err) => {
+                alert("فشل الحفظ: " + err.message);
             });
         }
 
-        // 5. نظام الدخول السري
+        // حركة الدخول السرية
         let clicks = 0;
         function checkAdmin() {
             clicks++;
             if (clicks === 5) {
-                const pass = prompt("كلمة السر السرية:");
+                const pass = prompt("كلمة السر:");
                 if (pass === "123") {
                     document.getElementById('adminPanel').style.display = 'block';
-                    document.getElementById('adminPanel').scrollIntoView({ behavior: 'smooth' });
                 } else {
-                    alert("كلمة سر خاطئة!");
+                    alert("خطأ!");
                 }
                 clicks = 0;
             }
-            // ريست للضغطات لو اتأخر
             setTimeout(() => { clicks = 0; }, 3000);
         }
 
-        // تشغيل الجلب عند فتح الصفحة
+        // تشغيل الجلب عند التحميل
         loadData();
     </script>
 </body>
