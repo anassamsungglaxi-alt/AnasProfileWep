@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Anas | World</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <style>
+        :root { --primary: #38bdf8; --bg: #030712; --card: #111827; }
+        body { font-family: 'Cairo', sans-serif; background: var(--bg); color: white; margin: 0; padding: 20px; }
+        .container { max-width: 600px; margin: auto; }
+        h1 { font-size: 3rem; margin-bottom: 0; background: linear-gradient(to right, #38bdf8, #818cf8); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        
+        /* تصميم الأزرار العصري */
+        .link-btn { display: block; background: var(--card); border: 1px solid #1f2937; color: white; text-decoration: none; padding: 16px; margin: 12px 0; border-radius: 16px; font-weight: bold; transition: 0.3s; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+        .link-btn:hover { transform: translateY(-3px); border-color: var(--primary); box-shadow: 0 10px 15px -3px rgba(56, 189, 248, 0.2); }
+
+        /* تصميم القوائم (المدونات) */
+        .blog-item { background: var(--card); border-radius: 16px; margin: 12px 0; overflow: hidden; border: 1px solid #1f2937; }
+        .blog-header { padding: 16px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; font-weight: bold; background: #1f2937; }
+        .blog-content { padding: 0; max-height: 0; overflow: hidden; transition: all 0.4s ease-out; background: var(--card); text-align: right; }
+        .blog-content.active { padding: 16px; max-height: 1000px; border-top: 1px solid #1f2937; }
+        .blog-content a { color: var(--primary); text-decoration: underline; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Anas</h1>
+        <p style="color:#94a3b8">Software Developer & Tech Enthusiast</p>
+        
+        <div id="linksContainer"></div>
+        
+        <h3 style="margin-top:40px; text-align:right">📑 الشروحات والتدوينات</h3>
+        <div id="blogsContainer"></div>
+    </div>
+
+    <script>
+        const config = { databaseURL: "https://anasportfolio-c3316-default-rtdb.europe-west1.firebasedatabase.app" };
+        firebase.initializeApp(config);
+        const db = firebase.database();
+
+        // دالة لتحويل أي رابط نصي إلى لينك حقيقي قابل للضغط
+        function linkify(text) {
+            const urlPattern = /(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig;
+            return text.replace(urlPattern, '<a href="$1" target="_blank">$1</a>');
+        }
+
+        db.ref('/').on('value', (snapshot) => {
+            const data = snapshot.val();
+            
+            // عرض الروابط
+            let lHtml = '';
+            if(data?.links) {
+                Object.values(data.links).reverse().forEach(l => {
+                    lHtml += `<a href="${l.url}" target="_blank" class="link-btn">🔗 ${l.title}</a>`;
+                });
+            }
+            document.getElementById('linksContainer').innerHTML = lHtml || "لا توجد روابط";
+
+            // عرض المدونات بنظام القوائم
+            let bHtml = '';
+            if(data?.blogs) {
+                Object.values(data.blogs).reverse().forEach((b, index) => {
+                    bHtml += `
+                        <div class="blog-item">
+                            <div class="blog-header" onclick="toggleBlog(${index})">
+                                <span>${b.title}</span>
+                                <span id="icon-${index}">+</span>
+                            </div>
+                            <div class="blog-content" id="content-${index}">
+                                ${linkify(b.desc)}
+                                <br><br>
+                                <a href="${b.url}" target="_blank">رابط المرفقات/المصدر ←</a>
+                            </div>
+                        </div>`;
+                });
+            }
+            document.getElementById('blogsContainer').innerHTML = bHtml || "لا توجد مدونات";
+        });
+
+        function toggleBlog(id) {
+            const content = document.getElementById(`content-${id}`);
+            const icon = document.getElementById(`icon-${id}`);
+            content.classList.toggle('active');
+            icon.innerText = content.classList.contains('active') ? '-' : '+';
+        }
+    </script>
+</body>
+</html>
