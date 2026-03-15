@@ -2,224 +2,108 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Anas | Portfolio & Admin</title>
+    <title>Anas | My World</title>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
     
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-database.js"></script>
 
     <style>
-        :root {
-            --main-color: #38bdf8;
-            --bg-dark: #0f172a;
-            --card-bg: #1e293b;
-        }
-
-        body {
-            font-family: 'Cairo', sans-serif;
-            background-color: var(--bg-dark);
-            color: white;
-            margin: 0;
-            padding: 20px;
-        }
-
-        .container {
-            max-width: 600px;
-            margin: auto;
-            text-align: center;
-        }
-
-        h1 {
-            color: var(--main-color);
-            cursor: pointer;
-            user-select: none;
-            font-size: 2.5rem;
-        }
-
-        .card {
-            background: var(--card-bg);
-            padding: 20px;
-            margin: 15px 0;
-            border-radius: 15px;
-            border: 1px solid #334155;
-            text-align: right;
-        }
-
-        .link-btn {
-            display: block;
-            background: #334155;
-            color: white;
-            text-decoration: none;
-            padding: 15px;
-            margin: 10px 0;
-            border-radius: 12px;
-            font-weight: bold;
-            transition: 0.3s;
-        }
-
-        .link-btn:hover {
-            background: var(--main-color);
-            color: #000;
-        }
-
-        /* لوحة التحكم */
-        #adminPanel {
-            display: none;
-            background: #000;
-            padding: 25px;
-            border: 2px solid var(--main-color);
-            margin: 30px 0;
-            border-radius: 20px;
-        }
-
-        input, textarea {
-            width: 90%;
-            padding: 12px;
-            margin: 10px 0;
-            border-radius: 8px;
-            border: 1px solid #334155;
-            background: #111;
-            color: white;
-            font-family: 'Cairo';
-        }
-
-        button {
-            background: var(--main-color);
-            color: #000;
-            border: none;
-            padding: 12px 25px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: bold;
-            margin: 5px;
-        }
-
-        button:active { transform: scale(0.95); }
+        body { font-family: 'Cairo', sans-serif; background: #0f172a; color: white; text-align: center; padding: 20px; }
+        .container { max-width: 500px; margin: auto; }
+        .card { background: #1e293b; padding: 15px; margin: 10px 0; border-radius: 12px; border: 1px solid #334155; text-align: right; }
+        .link-btn { display: block; background: #38bdf8; color: #000; text-decoration: none; padding: 12px; margin: 10px 0; border-radius: 8px; font-weight: bold; }
+        #adminPanel { display: none; background: #000; padding: 20px; border-radius: 15px; border: 2px solid #38bdf8; margin-top: 20px; }
+        input, textarea { width: 90%; padding: 10px; margin: 5px 0; border-radius: 5px; border: none; }
+        button { background: #38bdf8; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-weight: bold; }
     </style>
 </head>
 <body>
 
     <div class="container">
-        <h1 onclick="checkAdmin()">Anas</h1>
-        <p style="color: #94a3b8;">مرحباً بك في ملفي الشخصي ومدونتي</p>
-
-        <div id="linksContainer">
-            <p>جاري تحميل الروابط...</p>
-        </div>
-
-        <h3 style="margin-top: 40px; border-bottom: 2px solid var(--card-bg); padding-bottom: 10px;">الشروحات والمدونات ✍️</h3>
-        <div id="blogsContainer">
-            <p>جاري تحميل المدونات...</p>
-        </div>
+        <h1 onclick="openAdmin()" style="cursor: pointer;">Anas</h1>
+        <div id="linksContainer"></div>
+        <hr>
+        <h3>المدونات</h3>
+        <div id="blogsContainer"></div>
 
         <div id="adminPanel">
-            <h3 style="color: var(--main-color);">لوحة التحكم 🛠️</h3>
+            <h3>لوحة التحكم</h3>
             <input type="text" id="title" placeholder="العنوان">
-            <input type="text" id="url" placeholder="الرابط (URL)">
-            <textarea id="desc" rows="3" placeholder="الوصف (للمدونات فقط)"></textarea>
+            <input type="text" id="url" placeholder="الرابط">
+            <textarea id="desc" placeholder="الوصف"></textarea>
             <br>
-            <button onclick="saveData('links')">إضافة كـ رابط</button>
-            <button onclick="saveData('blogs')" style="background: #22c55e;">نشر كـ مدونة</button>
+            <button onclick="sendData('links')">إضافة رابط</button>
+            <button onclick="sendData('blogs')" style="background: #22c55e;">إضافة مدونة</button>
         </div>
     </div>
 
     <script>
-        // إعدادات فايربيز لمشروعك AnasPortfolio
-        const firebaseConfig = {
-            apiKey: "AIzaSyC-NoKeyRequiredForPublicRTDB",
-            authDomain: "anasportfolio-c3316.firebaseapp.com",
-            databaseURL: "https://anasportfolio-c3316-default-rtdb.firebaseio.com/",
-            projectId: "anasportfolio-c3316",
+        // التأكد من الرابط بالظبط زي ما هو في حسابك
+        const config = {
+            databaseURL: "https://anasportfolio-c3316-default-rtdb.firebaseio.com/"
         };
+        firebase.initializeApp(config);
+        const database = firebase.database();
 
-        // بدء الاتصال
-        if (!firebase.apps.length) {
-            firebase.initializeApp(firebaseConfig);
-        }
-        const db = firebase.database();
-
-        // جلب وعرض البيانات
-        function loadData() {
-            db.ref('/').on('value', (snapshot) => {
-                const data = snapshot.val();
-                
-                // تحديث الروابط
-                let linksHtml = '';
-                if (data && data.links) {
-                    Object.keys(data.links).reverse().forEach(key => {
-                        const l = data.links[key];
-                        linksHtml += `<a href="${l.url}" target="_blank" class="link-btn">${l.title}</a>`;
-                    });
-                }
-                document.getElementById('linksContainer').innerHTML = linksHtml || "<p>لا توجد روابط مضافة</p>";
-
-                // تحديث المدونات
-                let blogsHtml = '';
-                if (data && data.blogs) {
-                    Object.keys(data.blogs).reverse().forEach(key => {
-                        const b = data.blogs[key];
-                        blogsHtml += `
-                            <div class="card">
-                                <h4>${b.title}</h4>
-                                <p style="color:#94a3b8; font-size:14px;">${b.desc}</p>
-                                <a href="${b.url}" target="_blank" style="color:var(--main-color); text-decoration:none;">اقرأ المزيد ←</a>
-                            </div>`;
-                    });
-                }
-                document.getElementById('blogsContainer').innerHTML = blogsHtml || "<p>لا توجد مدونات مضافة</p>";
-            }, (error) => {
-                console.error(error);
-                alert("خطأ في الاتصال بقاعدة البيانات!");
-            });
-        }
-
-        // دالة الحفظ مع تنبيهات مؤكدة
-        function saveData(type) {
-            const title = document.getElementById('title').value;
-            const url = document.getElementById('url').value;
-            const desc = document.getElementById('desc').value;
-
-            if (!title || !url) {
-                alert("أدخل العنوان والرابط يا أنس!");
-                return;
+        // عرض البيانات
+        database.ref('/').on('value', (snapshot) => {
+            const data = snapshot.val();
+            
+            let lHtml = '';
+            if(data?.links) {
+                Object.values(data.links).forEach(l => {
+                    lHtml += `<a href="${l.url}" target="_blank" class="link-btn">${l.title}</a>`;
+                });
             }
+            document.getElementById('linksContainer').innerHTML = lHtml || "لا يوجد روابط";
 
-            db.ref(type).push({
-                title: title,
-                url: url,
-                desc: desc || "",
-                time: Date.now()
+            let bHtml = '';
+            if(data?.blogs) {
+                Object.values(data.blogs).forEach(b => {
+                    bHtml += `<div class="card"><h4>${b.title}</h4><p>${b.desc}</p><a href="${b.url}" style="color:#38bdf8">الرابط</a></div>`;
+                });
+            }
+            document.getElementById('blogsContainer').innerHTML = bHtml || "لا يوجد مدونات";
+        });
+
+        // إرسال البيانات
+        function sendData(path) {
+            const t = document.getElementById('title').value;
+            const u = document.getElementById('url').value;
+            const d = document.getElementById('desc').value;
+
+            if(!t || !u) return alert("املا الخانات!");
+
+            console.log("محاولة الإرسال لـ:", path);
+            
+            database.ref(path).push({
+                title: t,
+                url: u,
+                desc: d || ""
             })
             .then(() => {
-                alert("تم الحفظ بنجاح! 🚀");
+                alert("تم الحفظ بنجاح! 🎉");
                 document.getElementById('title').value = '';
                 document.getElementById('url').value = '';
                 document.getElementById('desc').value = '';
             })
-            .catch((err) => {
-                alert("فشل الحفظ: " + err.message);
+            .catch(err => {
+                alert("خطأ: " + err.message);
+                console.error(err);
             });
         }
 
-        // حركة الدخول السرية
-        let clicks = 0;
-        function checkAdmin() {
-            clicks++;
-            if (clicks === 5) {
-                const pass = prompt("كلمة السر:");
-                if (pass === "123") {
+        let count = 0;
+        function openAdmin() {
+            count++;
+            if(count === 5) {
+                if(prompt("الباسورد؟") === "123") {
                     document.getElementById('adminPanel').style.display = 'block';
-                } else {
-                    alert("خطأ!");
                 }
-                clicks = 0;
+                count = 0;
             }
-            setTimeout(() => { clicks = 0; }, 3000);
         }
-
-        // تشغيل الجلب عند التحميل
-        loadData();
     </script>
 </body>
 </html>
