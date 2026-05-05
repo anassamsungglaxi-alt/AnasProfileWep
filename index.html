@@ -3,346 +3,249 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>بروفايل أنس</title>
-    <link rel="icon" href="favicon.ico" type="image/x-icon">
+    <title>Anas Profile</title>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <style>
-        *, *::before, *::after {
-            box-sizing: border-box;
-        }
-
+        *, *::before, *::after { box-sizing: border-box; }
         :root {
             --bg: #020617;
             --neon-blue: #00d2ff;
             --neon-purple: #9d50bb;
-            --card-bg: rgba(15, 23, 42, 0.45); 
+            --card-bg: rgba(15, 23, 42, 0.5); 
         }
 
         body {
             font-family: 'Cairo', sans-serif;
-            background-color: transparent; 
+            background-color: #020617; 
             color: #e2e8f0;
             margin: 0;
             padding: 20px;
             overflow-x: hidden;
-            width: 100vw; 
             min-height: 100vh;
         }
 
         .container { 
             max-width: 500px; 
-            width: 100%; 
             margin: auto; 
             position: relative; 
-            z-index: 1;
-            padding-bottom: 50px; /* مساحة إضافية من الأسفل */
+            z-index: 2;
         }
 
-        .header {
-            text-align: center;
-            margin: 40px 0;
+        @keyframes spaceFloat {
+            0% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-10px) rotate(0.5deg); }
+            100% { transform: translateY(0px) rotate(0deg); }
         }
 
-        h1 {
-            font-size: 3.5rem;
-            margin: 0;
-            color: #fff;
-            text-shadow: 0 0 10px var(--neon-blue), 0 0 20px var(--neon-blue);
-            letter-spacing: 2px;
+        @keyframes itemReveal {
+            0% { opacity: 0; transform: translateY(40px) scale(0.9); filter: blur(10px); }
+            100% { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
         }
 
-        .tagline { color: var(--neon-blue); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 3px; opacity: 0.8; }
+        .header { text-align: center; margin: 40px 0; animation: itemReveal 1s ease forwards; }
+        h1 { font-size: 3.5rem; margin: 0; color: #fff; text-shadow: 0 0 15px var(--neon-blue); }
 
-        .link-card {
+        .link-card, .blog-item {
             background: var(--card-bg);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(0, 210, 255, 0.2);
-            padding: 18px;
-            margin: 15px 0;
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(0, 210, 255, 0.15);
+            margin: 20px 0;
             border-radius: 15px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            text-decoration: none;
-            color: #fff;
-            font-weight: bold;
-            transition: 0.4s;
-            position: relative;
-            overflow: hidden;
-            cursor: pointer;
+            opacity: 0;
+            animation: itemReveal 0.8s ease forwards, spaceFloat 4s ease-in-out infinite;
         }
 
-        .link-card:hover {
-            border-color: var(--neon-blue);
-            box-shadow: 0 0 15px rgba(0, 210, 255, 0.4);
-            transform: translateX(-5px);
-            background: rgba(15, 23, 42, 0.7); 
+        .link-card { padding: 18px; display: flex; align-items: center; justify-content: space-between; text-decoration: none; color: #fff; cursor: pointer; }
+        
+        .blog-item { border-color: rgba(157, 80, 187, 0.3); position: relative; }
+        .blog-header { padding: 20px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
+        
+        .downloads-count {
+            font-size: 0.7rem;
+            background: rgba(157, 80, 187, 0.2);
+            padding: 2px 8px;
+            border-radius: 10px;
+            color: var(--neon-purple);
+            border: 1px solid rgba(157, 80, 187, 0.3);
         }
 
-        .blog-item {
-            background: var(--card-bg);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border-radius: 15px;
-            margin: 15px 0;
-            border: 1px solid rgba(157, 80, 187, 0.2);
-            transition: 0.3s;
-        }
-
-        .blog-header {
-            padding: 20px;
-            cursor: pointer;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .blog-header h4 { margin: 0; font-size: 1.1rem; color: #fff; display: flex; align-items: center; gap: 10px; }
-
-        .blog-content {
-            max-height: 0;
+        .blog-content { 
+            max-height: 0; 
+            overflow-y: auto; 
+            transition: 0.6s cubic-bezier(0.4, 0, 0.2, 1); 
             padding: 0 20px;
-            overflow: hidden;
-            transition: all 0.5s ease;
-            color: #94a3b8;
-            line-height: 1.7;
-            word-wrap: break-word;
-            word-break: break-all;
+            scrollbar-width: thin;
+            scrollbar-color: var(--neon-purple) transparent;
         }
 
-        .blog-content.active {
-            max-height: 350px;
-            padding: 10px 20px 25px 20px;
-            border-top: 1px solid rgba(157, 80, 187, 0.1);
-            overflow-y: auto;
+        .blog-content::-webkit-scrollbar { width: 4px; }
+        .blog-content::-webkit-scrollbar-thumb { background: var(--neon-purple); border-radius: 10px; }
+
+        .blog-content.active { 
+            max-height: 350px; 
+            padding: 10px 20px 25px; 
+            border-top: 1px solid rgba(157,80,187,0.1); 
         }
 
-        .blog-content::-webkit-scrollbar {
-            width: 4px;
-        }
-        .blog-content::-webkit-scrollbar-thumb {
-            background: var(--neon-purple);
-            border-radius: 10px;
-        }
-
-        .blog-content a { color: var(--neon-blue); text-shadow: 0 0 5px var(--neon-blue); text-decoration: none; }
-
-        .btn-visit {
-            display: inline-block;
+        .blog-desc { line-height: 1.8; font-size: 0.9rem; color: #cbd5e1; white-space: pre-wrap; }
+        
+        .btn-link {
+            display: block;
+            width: 100%;
+            text-align: center;
+            background: linear-gradient(45deg, var(--neon-blue), var(--neon-purple));
+            color: white;
+            padding: 10px;
             margin-top: 15px;
-            padding: 8px 20px;
-            background: linear-gradient(45deg, rgba(0, 210, 255, 0.6), rgba(157, 80, 187, 0.6));
-            backdrop-filter: blur(5px);
-            -webkit-backdrop-filter: blur(5px);
             border-radius: 10px;
-            color: #fff !important;
             text-decoration: none;
-            font-size: 0.8rem;
             font-weight: bold;
-            box-shadow: 0 0 10px rgba(0, 210, 255, 0.2);
-            cursor: pointer;
-            border: 1px solid rgba(255,255,255,0.1);
+            font-size: 0.85rem;
         }
 
-        h3 { color: var(--neon-purple); text-shadow: 0 0 5px var(--neon-purple); margin-top: 40px; }
+        #audio-status {
+            position: fixed; bottom: 20px; right: 20px;
+            background: rgba(0, 210, 255, 0.2);
+            padding: 10px; border-radius: 50%; cursor: pointer;
+            z-index: 10; border: 1px solid var(--neon-blue);
+        }
     </style>
 </head>
-<body>
+<body onclick="startSpaceSound()">
+
+    <div id="audio-status" onclick="toggleMute()"><i class="fa-solid fa-volume-high"></i></div>
+
     <div class="container">
         <div class="header">
             <h1>أنس</h1>
-            <div class="tagline">مطور ألعاب وتطبيقات ومواقع</div>
+            <div style="color: var(--neon-blue); letter-spacing: 3px; font-size: 0.8rem;">مطور ألعاب وتطبيقات أندرويد ومواقع الويب...</div>
         </div>
         
         <div id="linksContainer"></div>
-        
-        <h3><i class="fa-solid fa-code"></i> المدونات والتقارير</h3>
+        <h3 style="color:var(--neon-purple); text-align:center; margin-top:40px;"><i class="fa-solid fa-rocket"></i> المدونات</h3>
         <div id="blogsContainer"></div>
     </div>
 
     <script>
+        // إعدادات قاعدة البيانات الخاصة بك
         const config = { databaseURL: "https://anasportfolio-c3316-default-rtdb.europe-west1.firebasedatabase.app" };
         firebase.initializeApp(config);
         const db = firebase.database();
 
-        function linkify(text, type, id) {
+        let audio = new Audio('https://www.soundhelix.com/examples/mp3/SoundHelix-Song-10.mp3');
+        audio.loop = true;
+        let isStarted = false;
+
+        function startSpaceSound() { if(!isStarted) { audio.play(); isStarted = true; } }
+        function toggleMute() {
+            audio.muted = !audio.muted;
+            document.getElementById('audio-status').innerHTML = audio.muted ? 
+                '<i class="fa-solid fa-volume-xmark"></i>' : '<i class="fa-solid fa-volume-high"></i>';
+        }
+
+        function linkify(text) {
             const urlPattern = /(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig;
-            return text.replace(urlPattern, `<a href="$1" target="_blank" data-id="${id}" data-type="${type}" class="tracked-link">$1</a>`);
+            return text.replace(urlPattern, '<a href="$1" target="_blank" style="color:var(--neon-blue); text-decoration:underline;">$1</a>');
         }
 
-        function handleAction(type, id, url) {
-            if(!url) return;
-            const ref = db.ref(`${type}/${id}/clicks`);
-            ref.transaction((current) => (current || 0) + 1);
-            if(url !== "no-open") window.open(url, '_blank');
+        // دالة لزيادة عدد التحميلات الحقيقية عند الضغط على الزر
+        function registerClick(type, id) {
+            db.ref(`${type}/${id}/clicks`).transaction((currentClicks) => {
+                return (currentClicks || 0) + 1;
+            });
         }
-
-        document.addEventListener('click', function(e) {
-            if (e.target.classList.contains('tracked-link')) {
-                const id = e.target.getAttribute('data-id');
-                const type = e.target.getAttribute('data-type');
-                handleAction(type, id, "no-open");
-            }
-        });
 
         db.ref('/').on('value', (snapshot) => {
             const data = snapshot.val();
             
+            // عرض الروابط (Links)
             let lHtml = '';
             if(data?.links) {
+                let i = 0;
                 Object.keys(data.links).reverse().forEach(id => {
                     const l = data.links[id];
-                    lHtml += `
-                    <div onclick="handleAction('links', '${id}', '${l.url}')" class="link-card">
+                    lHtml += `<div onclick="registerClick('links', '${id}'); window.open('${l.url}', '_blank')" class="link-card" style="animation-delay: ${i * 0.2}s">
                         <span><i class="fa-solid fa-bolt" style="color:var(--neon-blue); margin-left:10px"></i> ${l.title}</span>
-                        <i class="fa-solid fa-chevron-left" style="font-size:0.8rem; opacity:0.5"></i>
+                        <i class="fa-solid fa-chevron-left"></i>
                     </div>`;
+                    i++;
                 });
             }
-            document.getElementById('linksContainer').innerHTML = lHtml || "Connecting...";
+            document.getElementById('linksContainer').innerHTML = lHtml;
 
+            // عرض المدونات (Blogs) مع دمج الأرقام الفيك والحقيقية
             let bHtml = '';
             if(data?.blogs) {
+                let j = 0;
                 Object.keys(data.blogs).reverse().forEach(id => {
                     const b = data.blogs[id];
-                    const hasLink = b.url && b.url.trim() !== "";
                     
-                    const totalClicks = (parseInt(b.clicks) || 0) + (parseInt(b.fakeClicks) || 0);
-                    
+                    // هنا السحر: نجمع الحقيقي + الفيك اللي بتبعتهم من كود الكنترول
+                    const totalDownloads = (parseInt(b.clicks) || 0) + (parseInt(b.fakeClicks) || 0);
+
                     bHtml += `
-                        <div class="blog-item">
-                            <div class="blog-header" onclick="toggleBlog('${id}')">
+                    <div class="blog-item" style="animation-delay: ${(j * 0.2) + 0.6}s">
+                        <div class="blog-header" onclick="toggleBlog('${id}')">
+                            <div style="display:flex; flex-direction:column; gap:5px">
                                 <h4><i class="fa-solid fa-terminal" style="color:var(--neon-purple)"></i> ${b.title}</h4>
-                                <div style="display:flex; align-items:center; gap:12px">
-                                    <span style="font-size:0.75rem; color:var(--neon-blue); opacity:0.8">
-                                        <i class="fa-solid fa-download"></i> ${totalClicks}
-                                    </span>
-                                    <i class="fa-solid fa-plus" id="icon-${id}" style="font-size:0.8rem; transition:0.3s"></i>
-                                </div>
+                                <span class="downloads-count"><i class="fa-solid fa-download"></i> ${totalDownloads} التحميلات</span>
                             </div>
-                            <div class="blog-content" id="content-${id}">
-                                <div>${linkify(b.desc, 'blogs', id)}</div>
-                                ${hasLink ? `<div onclick="handleAction('blogs', '${id}', '${b.url}')" class="btn-visit">الدخول للمصدر</div>` : ''}
-                            </div>
-                        </div>`;
+                            <i class="fa-solid fa-plus" id="icon-${id}" style="transition:0.3s"></i>
+                        </div>
+                        <div class="blog-content" id="content-${id}">
+                            <div class="blog-desc">${linkify(b.desc)}</div>
+                            ${b.url ? `<a href="${b.url}" target="_blank" onclick="registerClick('blogs', '${id}')" class="btn-link"><i class="fa-solid fa-cloud-arrow-down"></i> رابط التحميل / المصدر</a>` : ''}
+                        </div>
+                    </div>`;
+                    j++;
                 });
             }
-            document.getElementById('blogsContainer').innerHTML = bHtml || "No Data.";
+            document.getElementById('blogsContainer').innerHTML = bHtml;
         });
 
         function toggleBlog(id) {
             const content = document.getElementById(`content-${id}`);
             const icon = document.getElementById(`icon-${id}`);
-            if(content) {
-                content.classList.toggle('active');
-                icon.style.transform = content.classList.contains('active') ? 'rotate(45deg)' : 'rotate(0deg)';
-            }
+            content.classList.toggle('active');
+            icon.style.transform = content.classList.contains('active') ? 'rotate(45deg)' : 'rotate(0deg)';
         }
     </script>
 
     <script>
+        // Three.js Background
         const scene = new THREE.Scene();
-        scene.background = new THREE.Color(0x020617); 
-        
         const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
         const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-        
-        // تفعيل الجودة الفائقة للموبايل لمنع التشويش
-        renderer.setPixelRatio(window.devicePixelRatio);
         renderer.setSize(window.innerWidth, window.innerHeight);
-        
         renderer.domElement.style.position = 'fixed';
         renderer.domElement.style.top = '0';
-        renderer.domElement.style.left = '0';
-        renderer.domElement.style.width = '100vw'; 
-        renderer.domElement.style.height = '100vh'; 
         renderer.domElement.style.zIndex = '-1';
-        renderer.domElement.style.pointerEvents = 'none'; 
         document.body.appendChild(renderer.domElement);
 
-        // إضافة إضاءة محيطية خفيفة
-        const ambientLight = new THREE.AmbientLight(0x404040, 1.5); 
-        scene.add(ambientLight);
-
-        // إضافة إضاءة موجهة (شمس) لعمل ظلال واقعية على الأرض
-        const directionalLight = new THREE.DirectionalLight(0xffffff, 1.5);
-        directionalLight.position.set(5, 3, 5);
-        scene.add(directionalLight);
-
-        // إضافة النجوم
-        const starGeometry = new THREE.BufferGeometry();
-        const starMaterial = new THREE.PointsMaterial({ color: 0xffffff, size: 0.04, transparent: true, opacity: 0.8 });
-        const starVertices = [];
-        for(let i = 0; i < 4000; i++) {
-            starVertices.push((Math.random() - 0.5) * 100, (Math.random() - 0.5) * 100, -Math.random() * 100);
-        }
-        starGeometry.setAttribute('position', new THREE.Float32BufferAttribute(starVertices, 3));
-        const stars = new THREE.Points(starGeometry, starMaterial);
-        scene.add(stars);
-
-        // إضافة الكرة الأرضية بتأثيرات حقيقية (MeshStandardMaterial تتأثر بالضوء)
-        const earthGroup = new THREE.Group();
-        const textureLoader = new THREE.TextureLoader();
-        const earthTexture = textureLoader.load('https://unpkg.com/three-globe/example/img/earth-blue-marble.jpg'); 
-        
         const earthGeometry = new THREE.SphereGeometry(3.5, 64, 64);
         const earthMaterial = new THREE.MeshStandardMaterial({ 
-            map: earthTexture,
-            roughness: 0.6,
-            metalness: 0.1
+            map: new THREE.TextureLoader().load('https://unpkg.com/three-globe/example/img/earth-blue-marble.jpg') 
         });
         const earth = new THREE.Mesh(earthGeometry, earthMaterial);
-        earthGroup.add(earth);
+        scene.add(earth);
 
-        // إضافة الغلاف الجوي (توهج أزرق حول الأرض)
-        const atmosphereGeometry = new THREE.SphereGeometry(3.6, 64, 64);
-        const atmosphereMaterial = new THREE.MeshBasicMaterial({
-            color: 0x00d2ff,
-            transparent: true,
-            opacity: 0.15,
-            blending: THREE.AdditiveBlending,
-            side: THREE.BackSide
-        });
-        const atmosphere = new THREE.Mesh(atmosphereGeometry, atmosphereMaterial);
-        earthGroup.add(atmosphere);
+        const light = new THREE.PointLight(0x00d2ff, 1.5, 100);
+        light.position.set(5, 5, 5);
+        scene.add(light);
+        scene.add(new THREE.AmbientLight(0x404040));
 
-        scene.add(earthGroup);
-
-        // ضبط الكاميرا والأرض بناءً على حجم الشاشة لتناسب الموبايل بشكل مثالي
-        function resizeAndPosition() {
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-
-            // إذا كان المستخدم يفتح من موبايل، نبعد الكاميرا وننزل الأرض
-            if(window.innerWidth < 768) {
-                earthGroup.position.set(0, -4.5, 0); 
-                camera.position.z = 15; 
-            } else {
-                // إعدادات الكمبيوتر
-                earthGroup.position.set(0, -3.5, 0);
-                camera.position.z = 12;
-            }
-        }
-        
-        // استدعاء الدالة لضبط المقاسات في البداية
-        resizeAndPosition();
+        camera.position.z = 12;
 
         function animate() {
             requestAnimationFrame(animate);
-            earth.rotation.y += 0.0010; // دوران الأرض ببطء
-            atmosphere.rotation.y += 0.0020; // دوران الغلاف الجوي بشكل أسرع قليلاً للواقعية
-            stars.rotation.y -= 0.0002; 
+            earth.rotation.y += 0.0015;
             renderer.render(scene, camera);
         }
         animate();
-
-        window.addEventListener('resize', resizeAndPosition);
     </script>
 </body>
 </html>
